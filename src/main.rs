@@ -1,14 +1,16 @@
+mod halogen_processor;
+pub mod html_mapping;
+pub mod html_mapping_2;
+
 //use clap::{Arg, ArgAction, Command};
 use clap::Parser;
 
+use crate::html_mapping::Halogen;
 use std::fs;
 use std::path::PathBuf;
 use yaml_rust2::YamlLoader;
 
 //use crate::generate1::parse_html;
-
-mod halogen_processor;
-pub mod html_mapping;
 
 #[derive(Debug, Clone, Parser)]
 #[command(author, version, about)]
@@ -44,8 +46,14 @@ fn main() {
 
     let output = purs_file_name(&cfg.src_path, &cfg.module);
     println!("{}", output.display());
+
     let mapped = html_mapping::parse_html(&cfg.html, args.prn_enter_exit);
-    let result = halogen_processor::generate(&mapped, &output, &cfg.module, &cfg.main_action);
+
+    //let mapped: Vec<Halogen> = Vec::new();
+    let mapped2 = html_mapping_2::parse_html(&cfg.html);
+
+    let result =
+        halogen_processor::generate(&mapped, &mapped2, &output, &cfg.module, &cfg.main_action);
 }
 
 fn parse_yaml(yaml: &str) -> Result<Config, Box<dyn std::error::Error>> {

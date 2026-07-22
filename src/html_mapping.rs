@@ -3,8 +3,18 @@ use ego_tree::iter::Edge;
 use scraper::node::Node;
 use scraper::{ElementRef, Html, Selector};
 use std::fmt;
-//use scraper::{ElementRef, Html};
 use std::fs;
+
+// pub struct InputData {
+//     pub evt: String,
+//     pub title: String,
+//     pub clazz: String,
+//     pub name: String,
+// }
+
+pub struct InputData {
+    pub name: String,
+}
 
 pub struct ButtonData {
     pub evt: String,
@@ -19,6 +29,7 @@ pub struct DivData {
 }
 
 pub enum Halogen {
+    Input(InputData),
     Button(ButtonData),
     Div(DivData),
     HalogenUndef(String),
@@ -34,9 +45,21 @@ impl fmt::Display for ButtonData {
     }
 }
 
+impl fmt::Display for InputData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "input name:'{}'",
+            self.name // "input name:'{}', class:'{}', event:{}, title:'{}'",
+                      // self.name, self.clazz, self.evt, self.title
+        )
+    }
+}
+
 impl fmt::Display for Halogen {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Halogen::Input(data) => write!(f, "{}", data),
             // Hvis det er en Button, bruk structens egen Display-implementasjon via {}
             Halogen::Button(data) => write!(f, "{}", data),
 
@@ -78,16 +101,17 @@ fn get_last_div<'a>(
 }
 
 pub fn parse_html(html_file: &str, prn_enter_exit: bool) -> Vec<Halogen> {
-    let html_content = fs::read_to_string(html_file).expect("Failed to read file");
-    let doc = Html::parse_document(&html_content);
-
     let mut halogens: Vec<Halogen> = Vec::new();
+
+    let html_content = fs::read_to_string(html_file).expect("Failed to read file");
+
+    let doc = Html::parse_document(&html_content);
 
     let mut divs: Vec<DivData> = Vec::new();
 
     //let mut cur_div: Option<DivData> = None;
 
-    let body_selector = Selector::parse("body").unwrap();
+    let body_selector = Selector::parse("purs-div").unwrap();
 
     let mut div_depth: u8 = 0;
 
@@ -102,7 +126,8 @@ pub fn parse_html(html_file: &str, prn_enter_exit: bool) -> Vec<Halogen> {
                         let el_tag = el.value().name();
                         let cur_halogens = get_last_div(&mut divs, &mut halogens);
                         match el_tag {
-                            "button" => translate_button(el, cur_halogens),
+                            "purs-input" => map_input(el, cur_halogens),
+                            "button" => map_button(el, cur_halogens),
                             "div" => {
                                 let clazz_val = match el.attr("class") {
                                     None => "",
@@ -152,7 +177,7 @@ pub fn parse_html(html_file: &str, prn_enter_exit: bool) -> Vec<Halogen> {
     halogens
 }
 
-fn translate_button(el: ElementRef, result: &mut Vec<Halogen>) {
+fn map_button(el: ElementRef, result: &mut Vec<Halogen>) {
     let elx = el.value();
 
     let clazz_val = match elx.attr("class") {
@@ -188,6 +213,20 @@ fn translate_button(el: ElementRef, result: &mut Vec<Halogen>) {
     };
     result.push(Halogen::Button(btn));
 }
+
+fn map_input(el: ElementRef, result: &mut Vec<Halogen>) {
+    match el.value().attr("data-name") {
+        None => {}
+        Some(name) => {
+            let input = InputData {
+                name: String::from(name),
+            };
+            result.push(Halogen::Input(input));
+        }
+    };
+}
+
+// <span class="form-group"><label class="ps-label ps-mr-1">Edition#<input type="text" class="form-control ps-input"></label></span>
 
 /*
 

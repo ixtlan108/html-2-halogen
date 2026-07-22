@@ -1,5 +1,5 @@
 ---
 main-action: Rapanui.Common.MainAction
 module: Rapanui/UI2
-html: tests/resources/01.html
+html: tests/resources/02.html
 src-path: ../../java/harborview4/purescript/rapanui/src/

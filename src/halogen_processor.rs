@@ -1,8 +1,10 @@
-use crate::html_mapping::{ButtonData, DivData, Halogen};
+use crate::html_mapping::{ButtonData, DivData, Halogen, InputData};
+use crate::html_mapping_2::{Halogen2, InputData2, InputType};
 
 use std::fs::File;
 use std::io::{Result, Write};
 use std::path::Path;
+use std::sync::LazyLock;
 
 // enum HLType {
 //     Parent,
@@ -71,10 +73,13 @@ fn write_prelude<W: Write>(f: &mut W, module: &str, main_action: &str) -> Result
     writeln!(f, "import Halogen.HTML (HTML, ClassName(..))")?;
     let ma = main_action_to_import(main_action);
     writeln!(f, "{}", ma)?;
+    Ok(())
+}
+
+fn write_fn_def<W: Write>(f: &mut W) -> Result<()> {
     writeln!(f)?;
     writeln!(f, "view :: forall w. HTML w MainAction")?;
     writeln!(f, "view = ")?;
-    //writeln!(f, "import Rapanui.Common (MainAction(..))")?;
     Ok(())
 }
 
@@ -112,7 +117,17 @@ fn map_button(btn_data: &ButtonData, result: &mut Vec<HalogenLine>, is_first: bo
         )
     };
     //let btn_x = if is_first { btn } else { btn };
-    let line = HL::new(indent, String::from(btn));
+    let line = HL::new(indent, btn);
+    result.push(line);
+}
+
+fn map_input(inp_data: &InputData, result: &mut Vec<HalogenLine>, is_first: bool, indent: u8) {
+    let inp = if is_first {
+        format!("{} Nothing", inp_data.name)
+    } else {
+        format!(", {} Nothing", inp_data.name)
+    };
+    let line = HL::new(indent, inp);
     result.push(line);
 }
 
@@ -130,14 +145,16 @@ fn map_div(div_data: &DivData, result: &mut Vec<HalogenLine>, is_first: bool) {
     result.push(HL::new(1 + dpt, String::from("[")));
     if let Some((first, rest)) = div_data.children.split_first() {
         match first {
-            Halogen::Button(data) => map_button(data, result, true, dpt + 2),
             Halogen::Div(data) => map_div(data, result, true),
+            Halogen::Button(data) => map_button(data, result, true, dpt + 2),
+            Halogen::Input(data) => map_input(data, result, true, dpt + 2),
             _ => {}
         }
         for child in rest.iter() {
             match child {
-                Halogen::Button(data) => map_button(data, result, false, dpt + 2),
                 Halogen::Div(data) => map_div(data, result, false),
+                Halogen::Button(data) => map_button(data, result, false, dpt + 2),
+                Halogen::Input(data) => map_input(data, result, false, dpt + 2),
                 _ => {}
             }
         }
@@ -157,12 +174,87 @@ fn write_div<W: Write>(f: &mut W, div_data: &DivData, indent_level: u8) -> Resul
     Ok(())
 }
 
-// fn write_button<W: Write>(f: &mut W, btn_data: &ButtonData, indent_level: u8) -> Result<()> {
-//     Ok(())
-// }
+//static NEW_LINE: LazyLock<HalogenLine> = LazyLock::new(|| HL::new(0, String::from("")));
+
+fn map_input_2(data: &InputData2, result: &mut Vec<HalogenLine>) {
+    // inpTick :: forall w. Maybe Int -> HTML w MainAction
+    // inpTick val =
+    //   HH.span [ HP.classes [ ClassName "form-group" ]]
+    //     [ HH.label [ HP.classes [ ClassName "ps-label ps-mr-1" ]]
+    //       [ HH.text "Tick",
+    //         case val of
+    //           Nothing ->
+    //             HH.input [HP.type_ InputNumber, HP.classes [ ClassName "form-control ps-input" ]]
+    //           Just val1 ->
+    //             HH.input [HP.type_ InputNumber, HP.classes [ ClassName "form-control ps-input" ], HP.value (show val1)]
+    //       ]
+    //     ]
+    let fn_def = match data.input_type {
+        InputType::InputText => HL::new(
+            0,
+            format!(
+                "{} :: forall w. Maybe String -> HTML w MainAction",
+                data.name
+            ),
+        ),
+    };
+    result.push(HL::new(0, String::from("")));
+    result.push(fn_def);
+    result.push(HL::new(0, format!("{} val = ", data.name)));
+    result.push(HL::new(
+        1,
+        format!(
+            "HH.span [ HP.classes [ ClassName \"{}\" ]]",
+            data.span_class
+        ),
+    ));
+    result.push(HL::new(
+        2,
+        format!(
+            "[ HH.label [ HP.classes [ ClassName \"{}\" ]]",
+            data.label_class
+        ),
+    ));
+    result.push(HL::new(3, format!("[ HH.text \"{}\",", data.title)));
+    result.push(HL::new(4, String::from("case val of")));
+    result.push(HL::new(5, String::from("Nothing ->")));
+    result.push(HL::new(
+        6,
+        format!(
+            "HH.input [HP.type_ InputText, HP.classes [ ClassName \"{}\" ]]",
+            data.input_class
+        ),
+    ));
+    result.push(HL::new(5, String::from("Just val1 ->")));
+    result.push(HL::new(
+        6,
+        format!(
+            "HH.input [HP.type_ InputText, HP.classes [ ClassName \"{}\" ], HP.value val1]",
+            data.input_class
+        ),
+    ));
+    result.push(HL::new(3, String::from("]")));
+    result.push(HL::new(2, String::from("]")));
+}
+
+fn write_halogen_2<W: Write>(f: &mut W, items: &Vec<Halogen2>) -> Result<()> {
+    let mut lines: Vec<HalogenLine> = Vec::new();
+
+    for item in items.iter() {
+        match item {
+            Halogen2::Input(data) => map_input_2(data, &mut lines),
+            _ => {}
+        };
+    }
+
+    write_lines(f, &lines, 0)?;
+
+    Ok(())
+}
 
 pub fn generate(
     items: &Vec<Halogen>,
+    items2: &Vec<Halogen2>,
     output: &Path,
     module: &str,
     main_action: &str,
@@ -171,6 +263,11 @@ pub fn generate(
 
     write_prelude(&mut out, module, main_action)?;
 
+    write_halogen_2(&mut out, &items2)?;
+
+    if !items.is_empty() {
+        write_fn_def(&mut out)?;
+    }
     for item in items.iter() {
         match item {
             Halogen::Div(data) => write_div(&mut out, data, 1)?,

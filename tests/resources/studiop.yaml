@@ -1,5 +1,5 @@
 ---
 main-action: CustomerCRM.Types.MainAction
 module: CustomerCRM/UI2
-html: tests/resources/01.html
+html: tests/resources/02.html
 src-path: ../../crm/PushwagnerCrm/purescript/crm/customer-crm/src/

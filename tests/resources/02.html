@@ -80,7 +80,22 @@
             <span class="form-group">
               <label class="ps-label ps-mr-1">Edition#
                 <input type="text" class="form-control ps-input" onchange="EdNumChange"></label></span></purs-input>
+          <purs-select data-name="edtype">
+              <span class="form-group">
+                <label class="ps-label ps-mr-1">Edition Type
+                  <select onchange="IntervalChange" class="form-control ps-select">
+                    <option value="-">-</option>
+                    <option value="1">T.P.</option>
+                    <option value="2">BAT</option>
+                    <option value="3">M.E.</option>
+                    <option value="4">E.A.</option>
+                    <option value="5">H.C.</option>
+                    <option value="6">S.P</option>
+                    <option value="7">HCol</option>
+                  </select></label></span>
+          </purs-select>
         </div>
+        <!--
         <div class="div-outer-3">
           <user-profile-card>
             <profile-avatar></profile-avatar>
@@ -91,6 +106,7 @@
           </user-profile-card>
         </div>
       </div>
+      -->
     </purs-div>
   </body>
 </html>

@@ -46,7 +46,8 @@ profile-bio {
 }
 
 purs-div,
-purs-input {
+purs-input,
+purs-select {
   display: block;
 }
 

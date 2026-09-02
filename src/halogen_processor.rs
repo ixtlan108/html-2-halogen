@@ -1,5 +1,7 @@
 use crate::html_mapping::{ButtonData, DivData, Halogen, InputData, SelectData};
-use crate::html_mapping_2::{Halogen2, InputData2, InputType, OptionData, SelectData2};
+use crate::html_mapping_2::{
+    Halogen2, InputData2, InputType, OptionData, SelectData2, SwitchData2,
+};
 
 use std::fs::File;
 use std::io::{Result, Write};
@@ -309,6 +311,8 @@ fn map_select_2(data: &SelectData2, result: &mut Vec<HalogenLine>) {
     result.push(HL::new(4, String::from("]")));
 }
 
+fn map_switch_2(data: &SwitchData2, result: &mut Vec<HalogenLine>) {}
+
 fn write_halogen_2<W: Write>(f: &mut W, items: &Vec<Halogen2>) -> Result<()> {
     let mut lines: Vec<HalogenLine> = Vec::new();
 
@@ -316,6 +320,7 @@ fn write_halogen_2<W: Write>(f: &mut W, items: &Vec<Halogen2>) -> Result<()> {
         match item {
             Halogen2::Input(data) => map_input_2(data, &mut lines),
             Halogen2::Select(data) => map_select_2(data, &mut lines),
+            Halogen2::Switch(data) => map_switch_2(data, &mut lines),
         };
     }
 

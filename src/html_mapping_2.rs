@@ -93,9 +93,13 @@ impl SelectData2 {
     }
 }
 
+#[derive(Debug)]
+pub struct SwitchData2 {}
+
 pub enum Halogen2 {
     Input(InputData2),
     Select(SelectData2),
+    Switch(SwitchData2),
 }
 
 pub fn parse_html_file(html_file: &str) -> Vec<Halogen2> {
@@ -370,6 +374,10 @@ mod tests {
         let opt: &OptionData = &opts[index];
         assert_eq!(exp_text, opt.text);
         assert_eq!(exp_value, opt.value);
+    }
+    #[test]
+    fn test_parse_switch() -> Result<()> {
+        Ok(())
     }
 }
 

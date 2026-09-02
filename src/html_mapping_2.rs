@@ -115,6 +115,9 @@ impl SwitchData2 {
             name: String::from(name),
             title: String::from(title),
             evt: String::from(evt),
+            label_class: String::from(label_class),
+            input_class: String::from(input_class),
+            input_id: String::from(input_id),
         }
     }
 }
@@ -344,7 +347,14 @@ fn map_switch(el: ElementRef, result: &mut Vec<Halogen2>) {
                 };
                 let label_text: String = label.text().collect::<String>().trim().to_string();
 
-                let obj = SwitchData2::new(name);
+                let obj = SwitchData2::new(
+                    name,
+                    &label_text,
+                    label_class,
+                    input_class,
+                    evt_val,
+                    input_id,
+                );
                 result.push(Halogen2::Switch(obj));
             }
         }
@@ -443,7 +453,7 @@ mod tests {
     #[test]
     fn test_parse_switch() -> Result<()> {
         let html = r#"
-          <purs-switch data-name="xswitch">
+          <purs-switch data-name="xprints">
             <div class="form-check form-switch img-scroll--header ps-mt-auto ps-mr-1">
               <input type="checkbox" class="form-check-input" id="switchx" onchange="SwitchChange">
               <label for="switchx" class="form-check-label ps-label">Search all prints
@@ -458,7 +468,21 @@ mod tests {
 
         assert_eq!(1, result.len());
 
-        Ok(())
+        match result.first() {
+            Some(Halogen2::Switch(sx)) => {
+                assert_eq!("xprints", sx.name);
+                assert_eq!("Search all prints", sx.title);
+                assert_eq!("form-check-label ps-label", sx.label_class);
+                assert_eq!("form-check-input", sx.input_class);
+                assert_eq!("SwitchChange", sx.evt);
+                assert_eq!("switchx", sx.input_id);
+                Ok(())
+            }
+
+            _ => {
+                bail!("No purs-input found!")
+            }
+        }
     }
 }
 

@@ -20,6 +20,10 @@ pub struct InputData {
     pub name: String,
 }
 
+pub struct SwitchData {
+    pub name: String,
+}
+
 pub struct ButtonData {
     pub evt: String,
     pub title: String,
@@ -35,6 +39,7 @@ pub struct DivData {
 pub enum Halogen {
     Select(SelectData),
     Input(InputData),
+    Switch(SwitchData),
     Button(ButtonData),
     Div(DivData),
     HalogenUndef(String),
@@ -61,6 +66,17 @@ impl fmt::Display for InputData {
     }
 }
 
+impl fmt::Display for SwitchData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "input name:'{}'",
+            self.name // "input name:'{}', class:'{}', event:{}, title:'{}'",
+                      // self.name, self.clazz, self.evt, self.title
+        )
+    }
+}
+
 impl fmt::Display for SelectData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -77,6 +93,7 @@ impl fmt::Display for Halogen {
         match self {
             Halogen::Select(data) => write!(f, "{}", data),
             Halogen::Input(data) => write!(f, "{}", data),
+            Halogen::Switch(data) => write!(f, "{}", data),
             // Hvis det er en Button, bruk structens egen Display-implementasjon via {}
             Halogen::Button(data) => write!(f, "{}", data),
 
@@ -145,6 +162,7 @@ pub fn parse_html(html_file: &str, prn_enter_exit: bool) -> Vec<Halogen> {
                         match el_tag {
                             "purs-select" => map_select(el, cur_halogens),
                             "purs-input" => map_input(el, cur_halogens),
+                            "purs-switch" => map_switch(el, cur_halogens),
                             "button" => map_button(el, cur_halogens),
                             "div" => {
                                 let clazz_val = match el.attr("class") {
@@ -247,6 +265,18 @@ fn map_select(el: ElementRef, result: &mut Vec<Halogen>) {
                 name: String::from(name),
             };
             result.push(Halogen::Select(sel));
+        }
+    };
+}
+
+fn map_switch(el: ElementRef, result: &mut Vec<Halogen>) {
+    match el.value().attr("data-name") {
+        None => {}
+        Some(name) => {
+            let sel = SwitchData {
+                name: String::from(name),
+            };
+            result.push(Halogen::Switch(sel));
         }
     };
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-# cargo run -- --main-action CustomerCRM.Types.MainAction --module CustomerCRM/UI2 --html tests/resources/01.html --src-path ../../CustomerCRM/Purescript/rigaphoto-app/src/
-cargo run -- --yaml tests/resources/ekebergvn.yaml
+target/debug/html-2-halogen --yaml tests/resources/ekebergvn.yaml
+
 exit 0

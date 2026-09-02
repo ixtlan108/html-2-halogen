@@ -1,5 +1,7 @@
-use crate::html_mapping::{ButtonData, DivData, Halogen, InputData, SelectData};
-use crate::html_mapping_2::{Halogen2, InputData2, InputType, OptionData, SelectData2};
+use crate::html_mapping::{ButtonData, DivData, Halogen, InputData, SelectData, SwitchData};
+use crate::html_mapping_2::{
+    Halogen2, InputData2, InputType, OptionData, SelectData2, SwitchData2,
+};
 
 use std::fs::File;
 use std::io::{Result, Write};
@@ -69,7 +71,7 @@ fn write_prelude<W: Write>(f: &mut W, module: &str, main_action: &str) -> Result
     writeln!(f, "import Halogen.HTML as HH")?;
     writeln!(f, "import Halogen.HTML.Events as HE")?;
     writeln!(f, "import Halogen.HTML.Properties as HP")?;
-    writeln!(f, "import Halogen.HTML (HTML, ClassName(..))")?;
+    writeln!(f, "import Halogen.HTML (HTML, ClassName(..), AttrName(..))")?;
     let ma = main_action_to_import(main_action);
     writeln!(f, "{}", ma)?;
     Ok(())
@@ -143,6 +145,16 @@ fn map_select(data: &SelectData, result: &mut Vec<HalogenLine>, is_first: bool, 
     result.push(line);
 }
 
+fn map_switch(data: &SwitchData, result: &mut Vec<HalogenLine>, is_first: bool, indent: u8) {
+    let sel = if is_first {
+        format!("{} true", data.name)
+    } else {
+        format!(", {} true", data.name)
+    };
+    let line = HL::new(indent, sel);
+    result.push(line);
+}
+
 fn map_div(div_data: &DivData, result: &mut Vec<HalogenLine>, is_first: bool) {
     //let mut result: Vec<HalogenLine> = Vec::new();
 
@@ -161,6 +173,7 @@ fn map_div(div_data: &DivData, result: &mut Vec<HalogenLine>, is_first: bool) {
             Halogen::Button(data) => map_button(data, result, true, dpt + 2),
             Halogen::Input(data) => map_input(data, result, true, dpt + 2),
             Halogen::Select(data) => map_select(data, result, true, dpt + 2),
+            Halogen::Switch(data) => map_switch(data, result, true, dpt + 2),
             _ => {}
         }
         for child in rest.iter() {
@@ -169,6 +182,7 @@ fn map_div(div_data: &DivData, result: &mut Vec<HalogenLine>, is_first: bool) {
                 Halogen::Button(data) => map_button(data, result, false, dpt + 2),
                 Halogen::Input(data) => map_input(data, result, false, dpt + 2),
                 Halogen::Select(data) => map_select(data, result, false, dpt + 2),
+                Halogen::Switch(data) => map_switch(data, result, false, dpt + 2),
                 _ => {}
             }
         }
@@ -286,15 +300,7 @@ fn map_select_2(data: &SelectData2, result: &mut Vec<HalogenLine>) {
             map_option(&item, false, result);
         }
     };
-    //               HH.option
-    //                 [ HP.value "calls"
-    //                 , HP.selected ("calls" == selected)]
-    //                 [ HH.text "Calls"]
-    //               , HH.option
-    //                  [ HP.value "puts"
-    //                  , HP.selected ("puts" == selected)]
-    //                  [ HH.text "Puts"]
-    //             ]
+
     result.push(HL::new(6, String::from("]")));
     result.push(HL::new(4, String::from("in")));
     result.push(HL::new(4, String::from("HH.select")));
@@ -309,6 +315,49 @@ fn map_select_2(data: &SelectData2, result: &mut Vec<HalogenLine>) {
     result.push(HL::new(4, String::from("]")));
 }
 
+fn map_switch_2(data: &SwitchData2, result: &mut Vec<HalogenLine>) {
+    //*
+    result.push(HL::new(0, String::from("")));
+    result.push(HL::new(
+        0,
+        format!("{}:: forall w. Boolean -> HTML w MainAction", data.name),
+    ));
+    result.push(HL::new(0, format!("{} checked =", data.name)));
+    result.push(HL::new(1, String::from("let")));
+    result.push(HL::new(2, format!("btnId = \"{}\"", data.input_id)));
+    result.push(HL::new(1, String::from("in")));
+    result.push(HL::new(1, String::from("HH.div")));
+    result.push(HL::new(
+        2,
+        format!("[ HP.classes [ ClassName \"{}\" ]]", data.div_class),
+    ));
+    result.push(HL::new(2, String::from("[ HH.input")));
+    result.push(HL::new(3, String::from("[ HP.type_ InputCheckbox")));
+    result.push(HL::new(
+        3,
+        format!(", HP.classes [ ClassName \"{}\" ]", data.input_class),
+    ));
+    result.push(HL::new(3, String::from(", HP.id btnId")));
+    result.push(HL::new(3, String::from(", HP.disabled false")));
+    result.push(HL::new(3, format!(", HE.onChecked {}", data.evt)));
+    result.push(HL::new(3, String::from(", HP.checked checked")));
+    result.push(HL::new(3, String::from("]")));
+    result.push(HL::new(2, String::from(", HH.label")));
+    result.push(HL::new(
+        3,
+        String::from("[ HP.attr (AttrName \"for\") btnId"),
+    ));
+    result.push(HL::new(
+        3,
+        format!(", HP.classes [ ClassName \"{}\"]", data.label_class),
+    ));
+    result.push(HL::new(3, String::from("]")));
+
+    result.push(HL::new(3, format!("[ HH.text \"{}\" ]", data.title)));
+    result.push(HL::new(2, String::from("]")));
+    //*/
+}
+
 fn write_halogen_2<W: Write>(f: &mut W, items: &Vec<Halogen2>) -> Result<()> {
     let mut lines: Vec<HalogenLine> = Vec::new();
 
@@ -316,6 +365,7 @@ fn write_halogen_2<W: Write>(f: &mut W, items: &Vec<Halogen2>) -> Result<()> {
         match item {
             Halogen2::Input(data) => map_input_2(data, &mut lines),
             Halogen2::Select(data) => map_select_2(data, &mut lines),
+            Halogen2::Switch(data) => map_switch_2(data, &mut lines),
         };
     }
 

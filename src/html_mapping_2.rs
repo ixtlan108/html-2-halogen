@@ -94,7 +94,30 @@ impl SelectData2 {
 }
 
 #[derive(Debug)]
-pub struct SwitchData2 {}
+pub struct SwitchData2 {
+    pub name: String,
+    pub title: String,
+    pub evt: String,
+    pub label_class: String,
+    pub input_class: String,
+    pub input_id: String,
+}
+impl SwitchData2 {
+    fn new(
+        name: &str,
+        title: &str,
+        label_class: &str,
+        input_class: &str,
+        evt: &str,
+        input_id: &str,
+    ) -> Self {
+        Self {
+            name: String::from(name),
+            title: String::from(title),
+            evt: String::from(evt),
+        }
+    }
+}
 
 pub enum Halogen2 {
     Input(InputData2),
@@ -112,6 +135,7 @@ pub fn parse_html(doc: &Html) -> Vec<Halogen2> {
     let mut halogens: Vec<Halogen2> = Vec::new();
     parse_input(doc, &mut halogens);
     parse_select(doc, &mut halogens);
+    parse_switch(doc, &mut halogens);
     halogens
 }
 
@@ -184,17 +208,6 @@ fn parse_select(doc: &Html, result: &mut Vec<Halogen2>) {
         map_select(select_element, result);
     }
 }
-
-// fn get_direct_text(element: ElementRef) -> String {
-//     element
-//         .children()
-//         .filter_map(|node| node.as_text())
-//         .map(|text| text.text.as_ref())
-//         .collect::<Vec<&str>>()
-//         .join("")
-//         .trim()
-//         .to_string()
-// }
 
 fn map_select(el: ElementRef, result: &mut Vec<Halogen2>) {
     let name = el.value().attr("data-name").unwrap_or("na");
@@ -284,6 +297,58 @@ fn map_select(el: ElementRef, result: &mut Vec<Halogen2>) {
     //     let text = option.text().collect::<Vec<_>>().join("");
     //     println!("Option Value: {:?}, Text: {}", value, text);
     // }
+}
+
+fn parse_switch(doc: &Html, result: &mut Vec<Halogen2>) {
+    let select_selector = Selector::parse("purs-switch").unwrap();
+    for select_element in doc.select(&select_selector) {
+        map_switch(select_element, result);
+    }
+}
+
+fn map_switch(el: ElementRef, result: &mut Vec<Halogen2>) {
+    let name = el.value().attr("data-name").unwrap_or("na");
+    if let Some(div_el) = el
+        .children()
+        .filter_map(ElementRef::wrap)
+        .find(|elx| elx.value().name() == "div")
+    {
+        let div_class = match div_el.attr("class") {
+            None => "",
+            Some(clazz) => clazz,
+        };
+
+        let input_selector = Selector::parse("input").unwrap();
+        let input_el = div_el.select(&input_selector).next();
+
+        if let Some(input) = input_el {
+            let label_selector = Selector::parse("label").unwrap();
+            let label_el = div_el.select(&label_selector).next();
+
+            if let Some(label) = label_el {
+                let input_class = match input.attr("class") {
+                    None => "",
+                    Some(clazz) => clazz,
+                };
+                let evt_val = match input.attr("onchange") {
+                    None => "",
+                    Some(evt) => evt,
+                };
+                let input_id = match input.attr("id") {
+                    None => "",
+                    Some(evt) => evt,
+                };
+                let label_class = match label.attr("class") {
+                    None => "",
+                    Some(clazz) => clazz,
+                };
+                let label_text: String = label.text().collect::<String>().trim().to_string();
+
+                let obj = SwitchData2::new(name);
+                result.push(Halogen2::Switch(obj));
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -377,8 +442,34 @@ mod tests {
     }
     #[test]
     fn test_parse_switch() -> Result<()> {
+        let html = r#"
+          <purs-switch data-name="xswitch">
+            <div class="form-check form-switch img-scroll--header ps-mt-auto ps-mr-1">
+              <input type="checkbox" class="form-check-input" id="switchx" onchange="SwitchChange">
+              <label for="switchx" class="form-check-label ps-label">Search all prints
+              </label>
+            </div>
+          </purs-switch>
+        "#;
+
+        let document = Html::parse_fragment(html);
+
+        let result = parse_html(&document);
+
+        assert_eq!(1, result.len());
+
         Ok(())
     }
 }
 
 //<label>LABEL<select><option value="A">-</option></select></label>
+// fn get_direct_text(element: ElementRef) -> String {
+//     element
+//         .children()
+//         .filter_map(|node| node.as_text())
+//         .map(|text| text.text.as_ref())
+//         .collect::<Vec<&str>>()
+//         .join("")
+//         .trim()
+//         .to_string()
+// }

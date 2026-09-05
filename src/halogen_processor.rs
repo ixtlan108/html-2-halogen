@@ -1,4 +1,4 @@
-use crate::html_mapping::{ButtonData, DivData, Halogen, InputData, SelectData};
+use crate::html_mapping::{ButtonData, DivData, Halogen, InputData, SelectData, SwitchData};
 use crate::html_mapping_2::{
     Halogen2, InputData2, InputType, OptionData, SelectData2, SwitchData2,
 };
@@ -145,6 +145,16 @@ fn map_select(data: &SelectData, result: &mut Vec<HalogenLine>, is_first: bool, 
     result.push(line);
 }
 
+fn map_switch(data: &SwitchData, result: &mut Vec<HalogenLine>, is_first: bool, indent: u8) {
+    let sel = if is_first {
+        format!("{} true", data.name)
+    } else {
+        format!(", {} true", data.name)
+    };
+    let line = HL::new(indent, sel);
+    result.push(line);
+}
+
 fn map_div(div_data: &DivData, result: &mut Vec<HalogenLine>, is_first: bool) {
     //let mut result: Vec<HalogenLine> = Vec::new();
 
@@ -163,6 +173,7 @@ fn map_div(div_data: &DivData, result: &mut Vec<HalogenLine>, is_first: bool) {
             Halogen::Button(data) => map_button(data, result, true, dpt + 2),
             Halogen::Input(data) => map_input(data, result, true, dpt + 2),
             Halogen::Select(data) => map_select(data, result, true, dpt + 2),
+            Halogen::Switch(data) => map_switch(data, result, true, dpt + 2),
             _ => {}
         }
         for child in rest.iter() {
@@ -171,6 +182,7 @@ fn map_div(div_data: &DivData, result: &mut Vec<HalogenLine>, is_first: bool) {
                 Halogen::Button(data) => map_button(data, result, false, dpt + 2),
                 Halogen::Input(data) => map_input(data, result, false, dpt + 2),
                 Halogen::Select(data) => map_select(data, result, false, dpt + 2),
+                Halogen::Switch(data) => map_switch(data, result, false, dpt + 2),
                 _ => {}
             }
         }
@@ -304,7 +316,7 @@ fn map_select_2(data: &SelectData2, result: &mut Vec<HalogenLine>) {
 }
 
 fn map_switch_2(data: &SwitchData2, result: &mut Vec<HalogenLine>) {
-    /*
+    //*
     result.push(HL::new(0, String::from("")));
     result.push(HL::new(
         0,
@@ -343,7 +355,7 @@ fn map_switch_2(data: &SwitchData2, result: &mut Vec<HalogenLine>) {
 
     result.push(HL::new(3, format!("[ HH.text \"{}\" ]", data.title)));
     result.push(HL::new(2, String::from("]")));
-    */
+    //*/
 }
 
 fn write_halogen_2<W: Write>(f: &mut W, items: &Vec<Halogen2>) -> Result<()> {

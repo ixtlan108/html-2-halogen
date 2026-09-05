@@ -98,6 +98,7 @@ pub struct SwitchData2 {
     pub name: String,
     pub title: String,
     pub evt: String,
+    pub div_class: String,
     pub label_class: String,
     pub input_class: String,
     pub input_id: String,
@@ -106,6 +107,7 @@ impl SwitchData2 {
     fn new(
         name: &str,
         title: &str,
+        div_class: &str,
         label_class: &str,
         input_class: &str,
         evt: &str,
@@ -115,6 +117,7 @@ impl SwitchData2 {
             name: String::from(name),
             title: String::from(title),
             evt: String::from(evt),
+            div_class: String::from(div_class),
             label_class: String::from(label_class),
             input_class: String::from(input_class),
             input_id: String::from(input_id),
@@ -314,7 +317,7 @@ fn map_switch(el: ElementRef, result: &mut Vec<Halogen2>) {
     if let Some(div_el) = el
         .children()
         .filter_map(ElementRef::wrap)
-        .find(|elx| elx.value().name() == "div")
+        .find(|elx| elx.value().name() == "divx")
     {
         let div_class = match div_el.attr("class") {
             None => "",
@@ -350,6 +353,7 @@ fn map_switch(el: ElementRef, result: &mut Vec<Halogen2>) {
                 let obj = SwitchData2::new(
                     name,
                     &label_text,
+                    div_class,
                     label_class,
                     input_class,
                     evt_val,
@@ -454,11 +458,11 @@ mod tests {
     fn test_parse_switch() -> Result<()> {
         let html = r#"
           <purs-switch data-name="xprints">
-            <div class="form-check form-switch img-scroll--header ps-mt-auto ps-mr-1">
+            <divx class="form-check form-switch">
               <input type="checkbox" class="form-check-input" id="switchx" onchange="SwitchChange">
               <label for="switchx" class="form-check-label ps-label">Search all prints
               </label>
-            </div>
+            </divx>
           </purs-switch>
         "#;
 
@@ -472,6 +476,7 @@ mod tests {
             Some(Halogen2::Switch(sx)) => {
                 assert_eq!("xprints", sx.name);
                 assert_eq!("Search all prints", sx.title);
+                assert_eq!("form-check form-switch", sx.div_class);
                 assert_eq!("form-check-label ps-label", sx.label_class);
                 assert_eq!("form-check-input", sx.input_class);
                 assert_eq!("SwitchChange", sx.evt);

@@ -1,5 +1,42 @@
-#!/bin/bash
+c1!/bin/bash
 
-target/debug/html-2-halogen --yaml tests/resources/ekebergvn.yaml
+
+usage()
+{
+cat << EOF
+usage: $0 options
+
+OPTIONS:
+   -h      Show this message
+   -r      Release mode 
+EOF
+}
+
+RELEASE=0
+while getopts “hr” OPTION
+do
+     case $OPTION in
+         h)
+             usage
+             exit 1
+             ;;
+         r)
+             RELEASE=1
+             ;;
+         ?)
+             usage
+             exit
+             ;;
+     esac
+done
+
+if [[ $RELEASE -eq 1 ]]; then
+        target/release/html-2-halogen --yaml tests/resources/ekebergvn.yaml
+        echo "RELEASE MODE"
+else
+        target/debug/html-2-halogen --yaml tests/resources/ekebergvn.yaml
+        echo "DEBUG MODE"
+fi
+
 
 exit 0

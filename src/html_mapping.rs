@@ -49,7 +49,7 @@ impl fmt::Display for ButtonData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "button class:'{}', event:{}, title:'{}'",
+            "Button: class:'{}', event:{}, title:'{}'",
             self.clazz, self.evt, self.title
         )
     }
@@ -59,7 +59,7 @@ impl fmt::Display for InputData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "input name:'{}'",
+            "Input: '{}'",
             self.name // "input name:'{}', class:'{}', event:{}, title:'{}'",
                       // self.name, self.clazz, self.evt, self.title
         )
@@ -70,7 +70,7 @@ impl fmt::Display for SwitchData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "input name:'{}'",
+            "Switch: '{}'",
             self.name // "input name:'{}', class:'{}', event:{}, title:'{}'",
                       // self.name, self.clazz, self.evt, self.title
         )
@@ -81,7 +81,7 @@ impl fmt::Display for SelectData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "select name:'{}'",
+            "select: '{}'",
             self.name // "input name:'{}', class:'{}', event:{}, title:'{}'",
                       // self.name, self.clazz, self.evt, self.title
         )

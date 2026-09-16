@@ -445,7 +445,7 @@ mod tests {
             }
 
             _ => {
-                bail!("No purs-input found!")
+                bail!("No purs-select found!")
             }
         }
     }
@@ -485,7 +485,7 @@ mod tests {
             }
 
             _ => {
-                bail!("No purs-input found!")
+                bail!("No purs-switch found!")
             }
         }
     }

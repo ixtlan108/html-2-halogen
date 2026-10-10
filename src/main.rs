@@ -53,8 +53,7 @@ fn main() {
     //let mapped: Vec<Halogen> = Vec::new();
     let mapped2 = html_mapping_2::parse_html_file(&cfg.html);
 
-    let result =
-        halogen_processor::generate(&mapped, &mapped2, &output, &cfg.module, &cfg.main_action);
+    let _ = halogen_processor::generate(&mapped, &mapped2, &output, &cfg.module, &cfg.main_action);
 }
 
 fn parse_yaml(yaml: &str) -> Result<Config, Box<dyn Error>> {

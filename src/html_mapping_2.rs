@@ -88,7 +88,7 @@ impl SelectData2 {
             label_class: String::from(label_class),
             select_class: String::from(select_class),
             evt: String::from(evt),
-            options: options,
+            options,
         }
     }
 }
@@ -162,11 +162,7 @@ fn map_input(el: ElementRef, result: &mut Vec<Halogen2>) {
         .filter_map(ElementRef::wrap)
         .find(|elx| elx.value().name() == "span")
     {
-        let span_class = match span_el.attr("class") {
-            None => "",
-            Some(clazz) => clazz,
-        };
-        //for node in span_el.descendants() {}
+        let span_class = span_el.attr("class").unwrap_or_default();
         let label_selector = Selector::parse("label").unwrap();
         let input_selector = Selector::parse("input").unwrap();
 
@@ -174,25 +170,13 @@ fn map_input(el: ElementRef, result: &mut Vec<Halogen2>) {
         let input_el = span_el.select(&input_selector).next();
 
         if let Some(label) = label_el {
-            let label_class = match label.attr("class") {
-                None => "",
-                Some(clazz) => clazz,
-            };
+            let label_class = label.attr("class").unwrap_or_default();
             let label_text: String = label.text().collect::<String>().trim().to_string();
 
             if let Some(input) = input_el {
-                let input_type = match input.attr("type") {
-                    None => "text",
-                    Some(inp_type) => inp_type,
-                };
-                let input_class = match input.attr("class") {
-                    None => "",
-                    Some(clazz) => clazz,
-                };
-                let evt_val = match input.attr("onchange") {
-                    None => "",
-                    Some(evt) => evt,
-                };
+                let input_type = input.attr("type").unwrap_or_default();
+                let input_class = input.attr("class").unwrap_or_default();
+                let evt_val = input.attr("onchange").unwrap_or_default();
                 let inp_obj = InputData2::new(
                     name,
                     &label_text,
@@ -222,10 +206,7 @@ fn map_select(el: ElementRef, result: &mut Vec<Halogen2>) {
         .filter_map(ElementRef::wrap)
         .find(|elx| elx.value().name() == "span")
     {
-        let span_class = match span_el.attr("class") {
-            None => "",
-            Some(clazz) => clazz,
-        };
+        let span_class = span_el.attr("class").unwrap_or_default();
 
         let label_selector = Selector::parse("label").unwrap();
         let sel_selector = Selector::parse("select").unwrap();
@@ -234,11 +215,7 @@ fn map_select(el: ElementRef, result: &mut Vec<Halogen2>) {
         let sel_el = span_el.select(&sel_selector).next();
 
         if let Some(label) = label_el {
-            let label_class = match label.attr("class") {
-                None => "",
-                Some(clazz) => clazz,
-            };
-            //let label_text: String = label.text().collect::<String>().trim().to_string();
+            let label_class = label.attr("class").unwrap_or_default();
 
             let label_text = label
                 .children()
@@ -254,14 +231,8 @@ fn map_select(el: ElementRef, result: &mut Vec<Halogen2>) {
                 .to_string();
 
             if let Some(sel) = sel_el {
-                let sel_class = match sel.attr("class") {
-                    None => "",
-                    Some(clazz) => clazz,
-                };
-                let evt_val = match sel.attr("onchange") {
-                    None => "",
-                    Some(evt) => evt,
-                };
+                let sel_class = sel.attr("class").unwrap_or_default();
+                let evt_val = sel.attr("onchange").unwrap_or_default();
                 // let options = sel
                 //     .child_elements()
                 //     .filter_map(|opt| Some(OptionData::new("ax", "bx")))
@@ -319,10 +290,7 @@ fn map_switch(el: ElementRef, result: &mut Vec<Halogen2>) {
         .filter_map(ElementRef::wrap)
         .find(|elx| elx.value().name() == "divx")
     {
-        let div_class = match div_el.attr("class") {
-            None => "",
-            Some(clazz) => clazz,
-        };
+        let div_class = div_el.attr("class").unwrap_or_default();
 
         let input_selector = Selector::parse("input").unwrap();
         let input_el = div_el.select(&input_selector).next();
@@ -332,22 +300,10 @@ fn map_switch(el: ElementRef, result: &mut Vec<Halogen2>) {
             let label_el = div_el.select(&label_selector).next();
 
             if let Some(label) = label_el {
-                let input_class = match input.attr("class") {
-                    None => "",
-                    Some(clazz) => clazz,
-                };
-                let evt_val = match input.attr("onchange") {
-                    None => "",
-                    Some(evt) => evt,
-                };
-                let input_id = match input.attr("id") {
-                    None => "",
-                    Some(evt) => evt,
-                };
-                let label_class = match label.attr("class") {
-                    None => "",
-                    Some(clazz) => clazz,
-                };
+                let input_class = input.attr("class").unwrap_or_default();
+                let evt_val = input.attr("onchange").unwrap_or_default();
+                let input_id = input.attr("id").unwrap_or_default();
+                let label_class = label.attr("class").unwrap_or_default();
                 let label_text: String = label.text().collect::<String>().trim().to_string();
 
                 let obj = SwitchData2::new(

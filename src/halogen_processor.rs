@@ -21,17 +21,14 @@ struct HalogenLine {
 
 impl HalogenLine {
     fn new(indent: u8, line: String) -> Self {
-        Self {
-            indent: indent,
-            line: line,
-        }
+        Self { indent, line }
     }
 }
 
 type HL = HalogenLine;
 
 fn module_path_2_package(module: &str) -> String {
-    String::from(module.replace("/", "."))
+    module.replace("/", ".")
 }
 
 fn split_module_main(s: &str) -> Option<(&str, &str)> {
@@ -84,7 +81,7 @@ fn write_fn_def<W: Write>(f: &mut W) -> Result<()> {
     Ok(())
 }
 
-fn write_lines<W: Write>(f: &mut W, lines: &Vec<HalogenLine>, indent: u8) -> Result<()> {
+fn write_lines<W: Write>(f: &mut W, lines: &[HalogenLine], indent: u8) -> Result<()> {
     for line in lines.iter() {
         let sum_indent = line.indent + indent;
         match sum_indent {
@@ -99,7 +96,7 @@ fn write_lines<W: Write>(f: &mut W, lines: &Vec<HalogenLine>, indent: u8) -> Res
             8 => writeln!(f, "                {}", line.line)?,
             9 => writeln!(f, "                  {}", line.line)?,
             10 => writeln!(f, "                   {}", line.line)?,
-            _ => writeln!(f, "{}", "error")?,
+            _ => writeln!(f, "error")?,
         };
     }
     Ok(())
@@ -161,7 +158,7 @@ fn map_div(div_data: &DivData, result: &mut Vec<HalogenLine>, is_first: bool) {
     let dpt = div_data.depth;
     let hh_div = if is_first { "HH.div" } else { ", HH.div" };
 
-    result.push(HL::new(0 + dpt, format!("{}", hh_div)));
+    result.push(HL::new(dpt, hh_div.to_string()));
     result.push(HL::new(
         1 + dpt,
         format!("[ HP.classes [ ClassName \"{}\" ]]", div_data.clazz),
@@ -254,7 +251,7 @@ fn map_input_2(data: &InputData2, result: &mut Vec<HalogenLine>) {
 }
 
 fn map_option(data: &OptionData, is_first: bool, result: &mut Vec<HalogenLine>) {
-    let init_line = if is_first == true {
+    let init_line = if is_first {
         String::from("HH.option")
     } else {
         String::from(", HH.option")
@@ -295,9 +292,9 @@ fn map_select_2(data: &SelectData2, result: &mut Vec<HalogenLine>) {
     result.push(HL::new(6, String::from("[")));
 
     if let Some((first, rest)) = data.options.split_first() {
-        map_option(&first, true, result);
+        map_option(first, true, result);
         for item in rest.iter() {
-            map_option(&item, false, result);
+            map_option(item, false, result);
         }
     };
 
@@ -358,7 +355,7 @@ fn map_switch_2(data: &SwitchData2, result: &mut Vec<HalogenLine>) {
     //*/
 }
 
-fn write_halogen_2<W: Write>(f: &mut W, items: &Vec<Halogen2>) -> Result<()> {
+fn write_halogen_2<W: Write>(f: &mut W, items: &[Halogen2]) -> Result<()> {
     let mut lines: Vec<HalogenLine> = Vec::new();
 
     for item in items.iter() {
@@ -375,8 +372,8 @@ fn write_halogen_2<W: Write>(f: &mut W, items: &Vec<Halogen2>) -> Result<()> {
 }
 
 pub fn generate(
-    items: &Vec<Halogen>,
-    items2: &Vec<Halogen2>,
+    items: &[Halogen],
+    items2: &[Halogen2],
     output: &Path,
     module: &str,
     main_action: &str,
@@ -385,16 +382,15 @@ pub fn generate(
 
     write_prelude(&mut out, module, main_action)?;
 
-    write_halogen_2(&mut out, &items2)?;
+    write_halogen_2(&mut out, items2)?;
 
     if !items.is_empty() {
         write_fn_def(&mut out)?;
     }
     for item in items.iter() {
-        match item {
-            Halogen::Div(data) => write_div(&mut out, data, 1)?,
-            _ => {}
-        };
+        if let Halogen::Div(data) = item {
+            write_div(&mut out, data, 1)?
+        }
     }
 
     Ok(())

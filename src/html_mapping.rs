@@ -124,7 +124,7 @@ impl fmt::Display for Halogen {
 // let x = get_last_div_mut!(divs, &mut halogens);
 
 fn get_last_div<'a>(
-    divs: &'a mut Vec<DivData>,
+    divs: &'a mut [DivData],
     halogens: &'a mut Vec<Halogen>,
 ) -> &'a mut Vec<Halogen> {
     if let Some(last_div) = divs.last_mut() {
@@ -165,10 +165,11 @@ pub fn parse_html(html_file: &str, prn_enter_exit: bool) -> Vec<Halogen> {
                             "purs-switch" => map_switch(el, cur_halogens),
                             "button" => map_button(el, cur_halogens),
                             "div" => {
-                                let clazz_val = match el.attr("class") {
-                                    None => "",
-                                    Some(clazz) => clazz,
-                                };
+                                let clazz_val = el.attr("class").unwrap_or_default();
+                                // let clazz_val = match el.attr("class") {
+                                //     None => "",
+                                //     Some(clazz) => clazz,
+                                // };
                                 let cur_div = DivData {
                                     clazz: String::from(clazz_val),
                                     children: Vec::new(),
@@ -185,19 +186,19 @@ pub fn parse_html(html_file: &str, prn_enter_exit: bool) -> Vec<Halogen> {
                     if prn_enter_exit {
                         println!("Leaving node: {:?}", node.value());
                     }
-                    if let Some(el) = ElementRef::wrap(node) {
-                        if el.value().name() == "div" {
-                            div_depth -= 1;
-                            if prn_enter_exit {
-                                println!("LEAVING DIV NODE");
-                            }
-                            if let Some(last_div) = divs.pop() {
-                                if divs.is_empty() {
-                                    halogens.push(Halogen::Div(last_div));
-                                } else {
-                                    if let Some(new_last_div) = divs.last_mut() {
-                                        new_last_div.children.push(Halogen::Div(last_div));
-                                    }
+                    if let Some(el) = ElementRef::wrap(node)
+                        && el.value().name() == "div"
+                    {
+                        div_depth -= 1;
+                        if prn_enter_exit {
+                            println!("LEAVING DIV NODE");
+                        }
+                        if let Some(last_div) = divs.pop() {
+                            if divs.is_empty() {
+                                halogens.push(Halogen::Div(last_div));
+                            } else {
+                                if let Some(new_last_div) = divs.last_mut() {
+                                    new_last_div.children.push(Halogen::Div(last_div));
                                 }
                             }
                         }
@@ -240,7 +241,7 @@ fn map_button(el: ElementRef, result: &mut Vec<Halogen>) {
     let btn = ButtonData {
         evt: String::from(evt_val),
         clazz: String::from(clazz_val),
-        title: String::from(title),
+        title,
     };
     result.push(Halogen::Button(btn));
 }
